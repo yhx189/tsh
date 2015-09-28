@@ -1,0 +1,134 @@
+.\" Process this file with
+.\" groff -man -Tascii tsh.1
+.\"
+.TH TSH 1 "OCT 2014" Linux "User Manuals"
+.SH NAME
+tsh \- Tiny Shell for Operating Systems project
+.SH SYNOPSIS
+.B ./tsh
+.SH DESCRIPTION
+.B tsh is short for tiny shell. It can interpret command line and execute it like other Unix shell
+.B It allows a user to background and foreground jobs, set alias, pipe output and redirect jobs standard input/output. 
+.B We complete both the basic part and extra part and pass all the tests.
+
+.IP "Basic Points"
+
+.BR "jobs control"
+
+.B  We implement job control functions in tsh such as bg, fg, jobs. We also correctly handle the signals such as SIGINT and SIGTSTP.
+.B  We use fork() to create a new process and execv() to execute the command.
+.B  The shell can put a job into background when user adds a & at the end of their command. To make it we use setpgid() to seperate the process from fg process group. To get a job back to for ground we use tcsetpgrp() to make it regain control of the terminal. 
+.B  We also use kill to send SIGCONT signal to make hanged process continue working. 
+.B  We ignore the SIGCHLD signal so that the child process will be automatically recycled and will not become defuncted. 
+
+.BR "signal handling"
+
+.B  When user type ctrl+c, a SIGINT signal is sent to the foreground job and it will be killed.
+.B  When user type ctrl+z, a SIGTSTP signal is sent to the foreground job and it will be stopped in the background.
+
+
+.BR "builtin commands"
+ 
+.B  There are six built in commands in our tsh, bg, fg, jobs, cd, alias, unalias.
+.B  They are built in the program so that the tsh will not search the PATH to find excecute file. 
+
+
+.IP "Extra Points"
+
+.BR alias/unalias
+
+.B Aliases allow a string to be substituted for a word when it is used as the first word of a simple command. 
+.B The shell maintains a list of aliases that may be set and unset with the alias and unalias commands.
+.B The tsh can let users use built-in command alias so set up alias and use unalias to unalias them.
+.B When every command comes in tsh tries to judge whether there is an alias. If true, the tsh expand the alias and substitute the old cmd with the expanded one. 
+ 
+.BR I/O redirect
+
+.B I/O redirect is implemented as a operation on file descriptors. Take i/o redirect in (aka "<") for example (i/o redirect out works pretty much the same way).
+.B Instead of reading input stream from stdin, tsh will read from a separate file descriptor, generated when opening the file in i/o redirect in commands. 
+.B The tricky part is, dup2(new_fd, old_fd) will replace old_fd with new_fd and increase file descriptor counter by 1. Therefore, file descriptor should be decreased after finishing this operation. 
+
+
+.BR pipe
+
+.B Pipe works pretty much the same with I/O redirect, i.e. replacing stdin/out with file descriptors.
+.B However, pipes will be used as the output end and the input end for commands, except for the first command in pipe as well as the last one.
+.B When creating pipes, the read/write end of each command will be linked to pipe[0]/pipe[1] instead of stdin/out. Note that file descriptors should be duplicated in child processes, instead of parent processes. Otherwise the stdin/out for tsh will be destoyed.
+.B Also, be sure to clear all the pipes in the parent process before wait().
+
+
+.\"SH OPTIONS
+.SH BUILTIN COMMANDS
+.IP "cd [DIRECTORY]"
+Change the current working directory specified as
+.B DIRECTORY.
+If no argument is provided by user, then this command
+will use the home directory of current user by default.
+
+.IP "fg JOB-NUMBER"
+.B fg
+command take a positive integer argument as job number,
+and fetch that background job with the specified job 
+number to foreground.
+
+.IP "bg JOB-NUMBER"
+.B bg
+command take a positive integer argument as job number,
+and let that background job with the specified job number
+continue running at background status.
+
+.IP jobs
+Print all the jobs with different status, such as
+Done, Stopped, Running.
+
+.IP "alias [KEY=VALUE]"
+Print all the configured alias pari in dictionary order
+if no argument is provided. And add the provided key
+and value pair to the alias list when provided.
+
+.IP "unalias KEY"
+Remove the corresponding key and value pair in the alias list
+specified by key.
+
+.\".SH FILES
+.\".I /etc/foo.conf
+.\".RS
+.\"The system wide configuration file. See
+.\".BR foo (5)
+.\"for further details.
+.\".RE
+.\".I ~/.foorc
+.\".RS
+.\"Per user configuration file. See
+.\".BR foo (5)
+.\"for further details.
+.SH ENVIRONMENT
+.IP PATH
+This environment variable is used by
+.IR tsh
+to retrieve the external executable file search path.
+.\".SH DIAGNOSTICS
+.\"The following diagnostics may be issued on stderr:
+.\" 
+.\"Bad magic number.
+.\".RS
+.\"The input file does not look like an archive file.
+.\".RE
+.\"Old style baz segments.
+.\".RS
+.\".B foo
+.\"can only handle new style baz segments. COBOL
+.\"object libraries are not supported in this version.
+.SH TO BE DONE
+.B tsh
+doesn't support
+.B semicolon(;)
+in command line.
+.SH AUTHOR
+
+.BR Weixiao Fu (wfj797) <weixiaofu2014@u.northwestern.edu>
+.BR Yang Hu (yhx189) <yanghu2019@u.northwestern.edu>
+.\"SH "SEE ALSO"
+.\"BR bar (1),
+.\"BR foo (5),
+.\"BR xyzzy (1)

@@ -1,0 +1,584 @@
+rm -f *.o *~
+rm -f tsh `whoami`-`date +%Y%m%d%H%M%S`-tsh.tar.gz
+cd testsuite;\
+	rm myspin mysplit mystop
+cd testsuite;\
+	gcc -o myspin myspin.c
+cd testsuite;\
+	gcc -o mysplit mysplit.c
+cd testsuite;\
+	gcc -o mystop mystop.c
+tar cvf `whoami`-`date +%Y%m%d%H%M%S`-tsh.tar Makefile *.h *.c test_type
+Makefile
+config.h
+interpreter.h
+io.h
+runtime.h
+tsh.h
+interpreter.c
+io.c
+runtime.c
+tsh.c
+test_type
+gzip `whoami`-`date +%Y%m%d%H%M%S`-tsh.tar
+HANDIN=`pwd`/`whoami`-`date +%Y%m%d%H%M%S`-tsh.tar.gz;\
+	cd testsuite;\
+	bash ./run_testcase.sh ${HANDIN} "32";
+Using reference shell 32
+Testing /home/aqualab/Projects/Project_1/skeleton/aqualab-20141004111259-tsh.tar.gz
+
+UNTAR
+Makefile
+config.h
+interpreter.h
+io.h
+runtime.h
+tsh.h
+interpreter.c
+io.c
+runtime.c
+tsh.c
+test_type
+
+COMPILE
+compile /tmp/cs343.tests.1ehrhM/interpreter.c
+compile /tmp/cs343.tests.1ehrhM/io.c
+compile /tmp/cs343.tests.1ehrhM/runtime.c
+compile /tmp/cs343.tests.1ehrhM/tsh.c
+LINKING
+5 warning(s) found while compiling
+0 error(s) found while compiling
+
+GCC OUTPUT
+-----
+-----
+/tmp/cs343.tests.1ehrhM/runtime.c: In function ‘DisplayJobs’:
+/tmp/cs343.tests.1ehrhM/runtime.c:296:9: warning: variable ‘n’ set but not used [-Wunused-but-set-variable]
+     int n;
+         ^
+/tmp/cs343.tests.1ehrhM/runtime.c: In function ‘check_done’:
+/tmp/cs343.tests.1ehrhM/runtime.c:421:13: warning: variable ‘n’ set but not used [-Wunused-but-set-variable]
+         int n;
+             ^
+/tmp/cs343.tests.1ehrhM/runtime.c: In function ‘DisplayJobs’:
+/tmp/cs343.tests.1ehrhM/runtime.c:298:10: warning: ignoring return value of ‘write’, declared with attribute warn_unused_result [-Wunused-result]
+     write(1,str_out,strlen(str_out));
+          ^
+/tmp/cs343.tests.1ehrhM/runtime.c: In function ‘check_done’:
+/tmp/cs343.tests.1ehrhM/runtime.c:423:14: warning: ignoring return value of ‘write’, declared with attribute warn_unused_result [-Wunused-result]
+         write(1,str_out,strlen(str_out));
+              ^
+-----
+/tmp/cs343.tests.1ehrhM/tsh.c: In function ‘sig’:
+/tmp/cs343.tests.1ehrhM/tsh.c:118:5: warning: implicit declaration of function ‘wait’ [-Wimplicit-function-declaration]
+     wait(&status);
+     ^
+-----
+
+RUN BASIC TEST CASES
+test33: PASS
+test34: PASS
+test01: PASS
+test02: PASS
+test03: FAILED
+Input:
+bash -c "sleep 2; echo hello2;" &
+echo hello
+bash -c "sleep 1; echo hello3;" &
+echo hello4
+sleep 3
+exit
+-- HOW IT SHOULD BE ------------------------------------------------------------ YOUR PROGRAM --------------------------------------------------------------
+hello										hello
+									      >	hello2
+									      >	[1]   Done                   bash -c sleep 2; echo hello2;
+hello4										hello4
+hello3										hello3
+hello2									      |	[1]   Done                   bash -c sleep 1; echo hello3;
+------------------------------------------------------------------------------------------------------------------------------------------------------------
+test04: FAILED
+Input:
+bash -c "sleep 3; echo hello1;" &
+bash -c "sleep 6; echo hello2;" &
+jobs
+sleep 1 
+jobs
+sleep 4
+jobs
+sleep 2
+exit
+-- HOW IT SHOULD BE ------------------------------------------------------------ YOUR PROGRAM --------------------------------------------------------------
+[1]   Running                 bash -c "sleep 3; echo hello1;" &		      |	[1]   Running                bash -c sleep 3; echo hello1; &
+[2]   Running                 bash -c "sleep 6; echo hello2;" &		      |	[2]   Running                bash -c sleep 6; echo hello2; &
+[1]   Running                 bash -c "sleep 3; echo hello1;" &		      <
+[2]   Running                 bash -c "sleep 6; echo hello2;" &		      <
+hello1										hello1
+[1]   Done                    bash -c "sleep 3; echo hello1;" 		      <
+[2]   Running                 bash -c "sleep 6; echo hello2;" &		      <
+hello2										hello2
+									      >	[1]   Done                   bash -c sleep 3; echo hello1;
+									      >	[2]   Done                   bash -c sleep 6; echo hello2;
+------------------------------------------------------------------------------------------------------------------------------------------------------------
+test05: FAILED
+Input:
+bash -c "sleep 2; echo hello2;" &
+echo hello
+sleep 3
+echo hello5 
+bash -c "sleep 3; echo hello3;" &
+echo hello4
+bash -c "sleep 4; echo hello6;" & 
+bash -c "sleep 2; echo hello7;" &
+sleep 5
+exit
+-- HOW IT SHOULD BE ------------------------------------------------------------ YOUR PROGRAM --------------------------------------------------------------
+hello										hello
+hello2										hello2
+[1]   Done                    bash -c "sleep 2; echo hello2;" 		      |	[1]   Done                   bash -c sleep 2; echo hello2;
+hello5										hello5
+hello4										hello4
+hello7									      <
+hello3										hello3
+									      >	[1]   Done                   bash -c sleep 3; echo hello3;
+									      >	hello7
+hello6										hello6
+------------------------------------------------------------------------------------------------------------------------------------------------------------
+test06: FAILED
+Input:
+bash -c "sleep 2; echo hello1;" &
+bash -c "sleep 4; echo hello2;" &
+jobs
+sleep 3
+jobs
+sleep 2 
+jobs
+bash -c "sleep 4; echo hello3;" &
+jobs
+sleep 5
+jobs
+exit
+-- HOW IT SHOULD BE ------------------------------------------------------------ YOUR PROGRAM --------------------------------------------------------------
+[1]   Running                 bash -c "sleep 2; echo hello1;" &		      |	[1]   Running                bash -c sleep 2; echo hello1; &
+[2]   Running                 bash -c "sleep 4; echo hello2;" &		      |	[2]   Running                bash -c sleep 4; echo hello2; &
+hello1										hello1
+[1]   Done                    bash -c "sleep 2; echo hello1;" 		      <
+[2]   Running                 bash -c "sleep 4; echo hello2;" &		      <
+hello2										hello2
+[2]   Done                    bash -c "sleep 4; echo hello2;" 		      |	[1]   Done                   bash -c sleep 2; echo hello1;
+[1]   Running                 bash -c "sleep 4; echo hello3;" &		      |	[2]   Done                   bash -c sleep 4; echo hello2;
+									      >	[1]   Running                bash -c sleep 4; echo hello3; &
+hello3										hello3
+[1]   Done                    bash -c "sleep 4; echo hello3;" 		      |	[1]   Done                   bash -c sleep 4; echo hello3;
+------------------------------------------------------------------------------------------------------------------------------------------------------------
+test07: FAILED
+Input:
+bash -c "sleep 2; echo hello1;" &
+bash -c "sleep 5; echo hello2;" &
+jobs
+fg 2
+echo hello3
+bash -c "sleep 3; echo hello4;" &
+jobs
+fg 1
+echo hello5
+exit
+-- HOW IT SHOULD BE ------------------------------------------------------------ YOUR PROGRAM --------------------------------------------------------------
+[1]   Running                 bash -c "sleep 2; echo hello1;" &		      |	[1]   Running                bash -c sleep 2; echo hello1; &
+[2]   Running                 bash -c "sleep 5; echo hello2;" &		      |	[2]   Running                bash -c sleep 5; echo hello2; &
+									      >	hello3
+hello1										hello1
+hello2										hello2
+[1]   Done                    bash -c "sleep 2; echo hello1;" 		      |	[1]   Done                   bash -c sleep 2; echo hello1;
+hello3									      |	[2]   Done                   bash -c sleep 5; echo hello2;
+[1]   Running                 bash -c "sleep 3; echo hello4;" &		      |	[1]   Running                bash -c sleep 3; echo hello4; &
+hello4									      <
+hello5										hello5
+									      >	hello4
+									      >	-tsh: fg: %-48: no such job
+									      >	-tsh: fg: %-48: no such job
+------------------------------------------------------------------------------------------------------------------------------------------------------------
+test08: FAILED
+Input:
+bash -c "sleep 1; echo hello1;" &
+bash -c "sleep 3; echo hello2;" &
+jobs
+fg 2
+echo hello3 
+sleep 3
+exit
+-- HOW IT SHOULD BE ------------------------------------------------------------ YOUR PROGRAM --------------------------------------------------------------
+[1]   Running                 bash -c "sleep 1; echo hello1;" &		      |	[1]   Running                bash -c sleep 1; echo hello1; &
+[2]   Running                 bash -c "sleep 3; echo hello2;" &		      |	[2]   Running                bash -c sleep 3; echo hello2; &
+									      >	hello3
+hello1										hello1
+hello2										hello2
+[1]   Done                    bash -c "sleep 1; echo hello1;" 		      |	[1]   Done                   bash -c sleep 1; echo hello1;
+hello3									      |	[2]   Done                   bash -c sleep 3; echo hello2;
+									      >	-tsh: fg: %-48: no such job
+------------------------------------------------------------------------------------------------------------------------------------------------------------
+test09: PASS
+test10: FAILED
+Input:
+./myspin 4 &
+./myspin 5 
+SLEEP 2
+INT
+jobs
+exit
+-- HOW IT SHOULD BE ------------------------------------------------------------ YOUR PROGRAM --------------------------------------------------------------
+									      |	[1]   Done                   ./myspin 4
+[1]   Running                 ./myspin 4 &				      <
+------------------------------------------------------------------------------------------------------------------------------------------------------------
+test11: FAILED
+Input:
+./myspin 4 &
+./myspin 5 
+SLEEP 2
+TSTP
+SLEEP 1
+jobs
+fg 2
+SLEEP 4
+exit
+-- HOW IT SHOULD BE ------------------------------------------------------------ YOUR PROGRAM --------------------------------------------------------------
+									      |	[1]   Done                   ./myspin 4
+[2]   Stopped                 ./myspin 5 				      |	-tsh: fg: current: no such job
+[1]   Running                 ./myspin 4 &				      <
+[2]   Stopped                 ./myspin 5 				      <
+------------------------------------------------------------------------------------------------------------------------------------------------------------
+test12: FAILED
+Input:
+./myspin 4 &
+./myspin 5 
+SLEEP 2
+TSTP
+SLEEP 1
+jobs
+bg 2
+jobs
+exit
+-- HOW IT SHOULD BE ------------------------------------------------------------ YOUR PROGRAM --------------------------------------------------------------
+									      |	[1]   Done                   ./myspin 4
+[2]   Stopped                 ./myspin 5 				      |	-tsh: bg: current: no such job
+[1]   Running                 ./myspin 4 &				      <
+[2]   Stopped                 ./myspin 5 				      <
+[1]   Running                 ./myspin 4 &				      <
+[2]   Running                 ./myspin 5 &				      <
+------------------------------------------------------------------------------------------------------------------------------------------------------------
+test13: FAILED
+Input:
+./myspin 5 &
+SLEEP 1
+fg 1
+SLEEP 1
+TSTP
+SLEEP 1
+jobs
+fg 1
+jobs
+exit
+-- HOW IT SHOULD BE ------------------------------------------------------------ YOUR PROGRAM --------------------------------------------------------------
+									      |	[1]   Running                ./myspin 5 &
+[1]   Stopped                 ./myspin 5 				      |	[1]   Running                ./myspin 5 &
+[1]   Stopped                 ./myspin 5 				      |	-tsh: fg: %-48: no such job
+									      >	-tsh: fg: %-48: no such job
+------------------------------------------------------------------------------------------------------------------------------------------------------------
+test14: FAILED
+Input:
+bash -c "sleep 4; echo hello1;"
+SLEEP 1
+TSTP
+SLEEP 1
+jobs
+bg 1
+jobs
+fg 1
+echo hello2 
+sleep 4
+exit
+-- HOW IT SHOULD BE ------------------------------------------------------------ YOUR PROGRAM --------------------------------------------------------------
+									      <
+[1]   Stopped                 bash -c "sleep 4; echo hello1;"		      <
+[1]   Stopped                 bash -c "sleep 4; echo hello1;" 		      <
+[1]   Running                 bash -c "sleep 4; echo hello1;" &		      <
+hello1										hello1
+hello2										hello2
+									      >	-tsh: bg: current: no such job
+									      >	-tsh: fg: current: no such job
+------------------------------------------------------------------------------------------------------------------------------------------------------------
+test15: PASS
+test16: FAILED
+Input:
+SLEEP 1
+TSTP
+SLEEP 1
+TSTP
+SLEEP 1
+ls test.4
+SLEEP 1
+INT
+SLEEP 1
+TSTP
+SLEEP 1
+INT
+SLEEP 1
+ls -l test.5
+exit
+-- HOW IT SHOULD BE ------------------------------------------------------------ YOUR PROGRAM --------------------------------------------------------------
+test.4									      <
+-rw-rw-r-- 1 aqualab aqualab 47 Oct  4 11:12 test.5			      <
+									      <
+									      <
+------------------------------------------------------------------------------------------------------------------------------------------------------------
+test17: FAILED
+Input:
+bash -c "sleep 3; echo hello1;"
+SLEEP 1
+TSTP
+jobs
+bg 1
+jobs
+fg 1
+echo hello2
+jobs
+bash -c "sleep 3; echo hello3;" &
+jobs
+fg 1
+echo hello4
+sleep 3
+exit
+-- HOW IT SHOULD BE ------------------------------------------------------------ YOUR PROGRAM --------------------------------------------------------------
+									      <
+[1]   Stopped                 bash -c "sleep 3; echo hello1;"		      <
+[1]   Stopped                 bash -c "sleep 3; echo hello1;" 		      <
+[1]   Running                 bash -c "sleep 3; echo hello1;" &		      <
+hello1										hello1
+hello2										hello2
+[1]   Running                 bash -c "sleep 3; echo hello3;" &		      |	[1]   Running                bash -c sleep 3; echo hello3; &
+hello3									      <
+hello4										hello4
+									      >	hello3
+									      >	[1]   Done                   bash -c sleep 3; echo hello3;
+									      >	-tsh: bg: current: no such job
+									      >	-tsh: fg: current: no such job
+									      >	-tsh: fg: %-48: no such job
+------------------------------------------------------------------------------------------------------------------------------------------------------------
+test18: PASS
+
+-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+7 basic test cases passed
+
+RUN EXTRA CREDIT TEST CASES
+test29: FAILED
+Input:
+alias showdir='ls'
+alias foo='ls -lh'
+alias test='whoami'
+alias
+unalias showdir
+unalias foo
+unalias test
+exit
+-- HOW IT SHOULD BE ------------------------------------------------------------ YOUR PROGRAM --------------------------------------------------------------
+alias foo='ls -lh'							      |	alias: command not found
+alias showdir='ls'							      |	alias: command not found
+alias test='whoami'							      |	alias: command not found
+									      >	alias: command not found
+									      >	unalias: command not found
+									      >	unalias: command not found
+									      >	unalias: command not found
+------------------------------------------------------------------------------------------------------------------------------------------------------------
+test30: FAILED
+Input:
+alias showdir='ls '
+alias home='~/'
+showdir home
+unalias showdir
+unalias home
+exit
+-- HOW IT SHOULD BE ------------------------------------------------------------ YOUR PROGRAM --------------------------------------------------------------
+config.vim								      |	alias: command not found
+Desktop									      |	alias: command not found
+Documents								      |	showdir: command not found
+Downloads								      |	unalias: command not found
+examples.desktop							      |	unalias: command not found
+Music									      <
+Pictures								      <
+Projects								      <
+Public									      <
+q									      <
+Templates								      <
+Videos									      <
+workspace								      <
+------------------------------------------------------------------------------------------------------------------------------------------------------------
+test20: FAILED
+Input:
+ls -l | grep test
+ls -l | grep 2
+ls -l | wc -l
+exit
+-- HOW IT SHOULD BE ------------------------------------------------------------ YOUR PROGRAM --------------------------------------------------------------
+-rw-rw-r-- 1 aqualab aqualab    32 Oct  4 11:12 test1.txt		      <
+-rw-rw-r-- 1 aqualab aqualab    43 Oct  4 11:12 test.20			      <
+-rw-rw-r-- 1 aqualab aqualab    25 Oct  4 11:12 test.200		      <
+-rw-rw-r-- 1 aqualab aqualab    24 Oct  4 11:12 test.23			      <
+-rw-rw-r-- 1 aqualab aqualab    23 Oct  4 11:12 test.3			      <
+-rw-rw-r-- 1 aqualab aqualab    39 Oct  4 11:12 test.4			      <
+-rw-rw-r-- 1 aqualab aqualab    47 Oct  4 11:12 test.5			      <
+total 224								      <
+-rw-rw-r-- 1 aqualab aqualab     0 Oct  4 11:12 catdogexit.txt		      <
+-rw-rw-r-- 1 aqualab aqualab    38 Oct  4 11:12 cat.txtt		      <
+drwxrwxr-x 3 aqualab aqualab  4096 Oct  4 11:13 dir21			      <
+-rw-rw-r-- 1 aqualab aqualab     0 Oct  4 11:12 dogcatexit.exit		      <
+-rw-rw-r-- 1 aqualab aqualab     0 Oct  4 11:12 dogexit.txt		      <
+-rw-rw-r-- 1 aqualab aqualab    15 Oct  4 11:12 dummy			      <
+-rw-rw-r-- 1 aqualab aqualab  7572 Oct  4 11:13 io.o			      <
+-rw-rw-r-- 1 aqualab aqualab    45 Oct  4 11:12 longlist.txt		      <
+-rwxrwxr-x 1 aqualab aqualab  7439 Oct  4 11:12 myspin			      <
+-rw-rw-r-- 1 aqualab aqualab 29588 Oct  4 11:13 runtime.o		      <
+-rwxr-xr-x 1 aqualab aqualab  5546 Oct  4 11:12 sdriver.pl		      <
+-rw-rw-r-- 1 aqualab aqualab    32 Oct  4 11:12 test1.txt		      <
+-rw-rw-r-- 1 aqualab aqualab    43 Oct  4 11:12 test.20			      <
+-rw-rw-r-- 1 aqualab aqualab    25 Oct  4 11:12 test.200		      <
+-rw-rw-r-- 1 aqualab aqualab    24 Oct  4 11:12 test.23			      <
+-rw-rw-r-- 1 aqualab aqualab    23 Oct  4 11:12 test.3			      <
+-rw-rw-r-- 1 aqualab aqualab    39 Oct  4 11:12 test.4			      <
+-rw-rw-r-- 1 aqualab aqualab    47 Oct  4 11:12 test.5			      <
+-rw-rw-r-- 1 aqualab aqualab    15 Oct  4 11:12 text2.txt		      <
+-rwxrwxr-x 1 aqualab aqualab 45281 Oct  4 11:13 tsh			      <
+-rw-rw-r-- 1 aqualab aqualab  7256 Oct  4 11:13 tsh.o			      <
+-rwxr-xr-x 1 aqualab aqualab 50370 Oct  4 11:12 tsh-orig.32		      <
+24									      <
+------------------------------------------------------------------------------------------------------------------------------------------------------------
+test22: FAILED
+Input:
+ls -l test.3 test.4 test.5 test.23 | wc -w
+grep test longlist.txt
+cat longlist.txt
+grep 3 longlist.txt | wc -w | cat | wc
+exit
+-- HOW IT SHOULD BE ------------------------------------------------------------ YOUR PROGRAM --------------------------------------------------------------
+36									      <
+2 test										2 test
+3 test										3 test
+2 test										2 test
+-e longlist									-e longlist
+txt										txt
+2 test										2 test
+2 world										2 world
+3 test										3 test
+2 test										2 test
+      1       1       2							      <
+------------------------------------------------------------------------------------------------------------------------------------------------------------
+test23: FAILED
+Input:
+ls -l | grep test
+ls -l | grep test | grep 2
+ls -l | grep test | grep 2 | wc
+exit
+-- HOW IT SHOULD BE ------------------------------------------------------------ YOUR PROGRAM --------------------------------------------------------------
+-rw-rw-r-- 1 aqualab aqualab    32 Oct  4 11:12 test1.txt		      <
+-rw-rw-r-- 1 aqualab aqualab    43 Oct  4 11:12 test.20			      <
+-rw-rw-r-- 1 aqualab aqualab    25 Oct  4 11:12 test.200		      <
+-rw-rw-r-- 1 aqualab aqualab    24 Oct  4 11:12 test.23			      <
+-rw-rw-r-- 1 aqualab aqualab    23 Oct  4 11:12 test.3			      <
+-rw-rw-r-- 1 aqualab aqualab    39 Oct  4 11:12 test.4			      <
+-rw-rw-r-- 1 aqualab aqualab    47 Oct  4 11:12 test.5			      <
+-rw-rw-r-- 1 aqualab aqualab    32 Oct  4 11:12 test1.txt		      <
+-rw-rw-r-- 1 aqualab aqualab    43 Oct  4 11:12 test.20			      <
+-rw-rw-r-- 1 aqualab aqualab    25 Oct  4 11:12 test.200		      <
+-rw-rw-r-- 1 aqualab aqualab    24 Oct  4 11:12 test.23			      <
+-rw-rw-r-- 1 aqualab aqualab    23 Oct  4 11:12 test.3			      <
+-rw-rw-r-- 1 aqualab aqualab    39 Oct  4 11:12 test.4			      <
+-rw-rw-r-- 1 aqualab aqualab    47 Oct  4 11:12 test.5			      <
+      7      63     392							      <
+------------------------------------------------------------------------------------------------------------------------------------------------------------
+test31: FAILED
+Input:
+ls -la ../ > dir.test.txt
+wc < dir.test.txt
+pwd > cur.dir.test.txt
+ls < cur.dir.test.txt 
+exit
+-- HOW IT SHOULD BE ------------------------------------------------------------ YOUR PROGRAM --------------------------------------------------------------
+  32  281 2026								      |	total 120
+									      >	drwxrwxrwt 29 root    root    4096 Oct  4 11:13 .
+									      >	drwxr-xr-x 22 root    root    4096 Sep 30 14:51 ..
+									      >	drwx------  2 aqualab aqualab 4096 Oct  4 11:12 cs343.tests.1ehrhM
+									      >	drwx------  2 aqualab aqualab 4096 Oct  4 10:37 cs343.tests.21wyJi
+									      >	drwx------  2 aqualab aqualab 4096 Oct  4 10:42 cs343.tests.4zdGaZ
+									      >	drwx------  3 aqualab aqualab 4096 Oct  4 10:30 cs343.tests.63WHJz
+									      >	drwx------  2 aqualab aqualab 4096 Oct  4 10:30 cs343.tests.7dTXJY
+									      >	drwx------  2 aqualab aqualab 4096 Oct  4 10:35 cs343.tests.bRS08X
+									      >	drwx------  2 aqualab aqualab 4096 Oct  4 10:44 cs343.tests.buH8G4
+									      >	drwx------  2 aqualab aqualab 4096 Oct  4 10:45 cs343.tests.d9Z59N
+									      >	drwx------  3 aqualab aqualab 4096 Oct  4 10:42 cs343.tests.Dd37NM
+									      >	drwx------  2 aqualab aqualab 4096 Oct  4 10:30 cs343.tests.eA4fTd
+									      >	drwx------  3 aqualab aqualab 4096 Oct  4 10:44 cs343.tests.Eqx2va
+									      >	drwx------  2 aqualab aqualab 4096 Oct  4 10:42 cs343.tests.f8BU6d
+									      >	drwx------  3 aqualab aqualab 4096 Oct  4 10:35 cs343.tests.kXXRvZ
+									      >	drwx------  2 aqualab aqualab 4096 Oct  4 10:57 cs343.tests.nvgcMy
+									      >	drwx------  3 aqualab aqualab 4096 Oct  4 11:16 cs343.tests.p5VFVP
+									      >	drwx------  2 aqualab aqualab 4096 Oct  4 10:57 cs343.tests.PVDtXJ
+									      >	drwx------  2 aqualab aqualab 4096 Oct  4 10:35 cs343.tests.pzaHqK
+									      >	drwx------  3 aqualab aqualab 4096 Oct  4 10:29 cs343.tests.twiOoT
+									      >	drwx------  2 aqualab aqualab 4096 Oct  4 10:35 cs343.tests.uC31H6
+									      >	drwx------  3 aqualab aqualab 4096 Oct  4 10:35 cs343.tests.UGgcYH
+									      >	drwx------  2 aqualab aqualab 4096 Oct  4 10:29 cs343.tests.UkidKZ
+									      >	drwx------  3 aqualab aqualab 4096 Oct  4 10:57 cs343.tests.xB677s
+									      >	drwx------  2 aqualab aqualab 4096 Oct  4 11:16 cs343.tests.XWIyg9
+									      >	drwx------  2 aqualab aqualab 4096 Oct  4 10:30 cs343.tests.Z03eKF
+									      >	drwxrwxrwt  2 root    root    4096 Oct  4 10:23 .ICE-unix
+									      >	drwx------  2 aqualab aqualab 4096 Oct  4 10:23 ssh-cjevwQ2hXC3a
+									      >	-rw-rw-r--  1 aqualab aqualab    0 Oct  4 10:23 unity_support_test.1
+									      >	-r--r--r--  1 root    root      11 Oct  4 10:23 .X0-lock
+									      >	drwxrwxrwt  2 root    root    4096 Oct  4 10:23 .X11-unix
+									      >	      0       0       0
+									      >	/tmp/cs343.tests.p5VFVP
+catdogexit.txt									catdogexit.txt
+cat.txtt									cat.txtt
+cur.dir.test.txt								cur.dir.test.txt
+dir21										dir21
+dir.test.txt									dir.test.txt
+dogcatexit.exit									dogcatexit.exit
+dogexit.txt									dogexit.txt
+dummy										dummy
+interpreter.o									interpreter.o
+io.o										io.o
+longlist.txt									longlist.txt
+myspin										myspin
+runtime.o									runtime.o
+sdriver.pl									sdriver.pl
+test1.txt									test1.txt
+test.20										test.20
+test.200									test.200
+test.23										test.23
+test.3										test.3
+test.4										test.4
+test.5										test.5
+text2.txt									text2.txt
+tsh										tsh
+tsh.o										tsh.o
+tsh-orig.32									tsh-orig.32
+------------------------------------------------------------------------------------------------------------------------------------------------------------
+test32: FAILED
+Input:
+pwd > cur.dir.txt
+cat cur.dir.txt
+wc < cur.dir.txt > file.test.txt
+cat file.test.txt
+exit
+-- HOW IT SHOULD BE ------------------------------------------------------------ YOUR PROGRAM --------------------------------------------------------------
+/tmp/cs343.tests.p5VFVP								/tmp/cs343.tests.p5VFVP
+									      >	/tmp/cs343.tests.p5VFVP
+									      >	      0       0       0
+ 1  1 24									 1  1 24
+------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+0 extra credit test cases passed
+
+CHECK FOR MEMORY LEAKS
+0 possible leaks
+0 leaks
+0 still reachable
